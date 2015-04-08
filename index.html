@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Wikipedia</title>
+<style>
+
+body {
+  background-color: #212121;
+  /*width:100%;
+  height: 1000px;*/
+}
+
+.mainSvg{
+  height: 100%;
+  width: 100%;
+}
+
+.node {
+  cursor: pointer;
+  stroke: #ea5e2b;
+  stroke-width: 0.2px;
+  opacity:0.7;
+}
+
+.node:hover {
+  opacity: 1;
+}
+
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 0.2px;
+  stroke-opacity: 0.5;
+}
+
+div.mapTooltip {
+  position: absolute;
+  text-align: center;
+  color: white;
+  height: 25px;
+  padding: 14px 10px 2px 10px;
+  font-size: 12px;
+  font-family: Helvetica, Arial,inherit;
+  font-weight: bold;
+  background: #444;
+  border: 3px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 1649,
+    height = 980,
+    root1,
+    root2,
+    root3,
+    root4,
+    root5,
+    root6,
+    root7,
+    root8;
+
+var svg = d3.select("body").append("svg")//.attr("class", "mainSvg")
+         .attr("width", width)
+         .attr("height", height);
+
+
+
+var layout1 = function() {
+
+  var force1 = d3.layout.force()
+      .size([width/2, height/2])
+      // .linkDistance(function(d) {
+      //     return d.size/100;
+      //  })
+      // .linkDistance(Math.random() * 300 +200)
+      .linkDistance(15.937)
+    //  .friction(0.5)
+      .charge(-100)
+      .gravity(0.1)
+      .on("tick", tick1);
+
+      var link = svg.selectAll(".link"),
+          node = svg.selectAll(".node");
+
+      var div = d3.select("body").append("div")
+            .attr("class", "mapTooltip")
+            .style("opacity", 0);
+
+      d3.json("audi_final.json", function(json1) {
+              root1 = json1;
+              update1();
+            });
+
+            function update1() {
+              var nodes = flatten(root1),
+                  links = d3.layout.tree().links(nodes);
+
+
+              // Restart the force layout.
+              force1
+                  .nodes(nodes)
+                  .links(links)
+                  .start();
+
+              // Update the links…
+              link = link.data(links, function(d) { return d.target.id; });
+
+              // Exit any old links.
+              link.exit().remove();
+
+              // Enter any new links.
+              link.enter().insert("line", ".node")
+                  .attr("class", "link")
+                  .attr("x1", function(d) { return d.source.x; })
+                  .attr("y1", function(d) { return d.source.y; })
+                  .attr("x2", function(d) { return d.target.x; })
+                  .attr("y2", function(d) { return d.target.y; });
+
+              // Update the nodes…
+              node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+              // Exit any old nodes.
+              node.exit().remove();
+
+              // Enter any new nodes.
+              node.enter().append("circle")
+                  .attr("class", "node")
+                  .attr("cx", function(d) { return d.x; })
+                  .attr("cy", function(d) { return d.y; })
+                  .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                  .style("fill", color)
+                  .on("click", click1)
+                  .on("mouseover", function(d) {
+                        div.transition().duration(300).style("opacity", 1);
+                        //div.text(d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                        div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY -30) + "px");})
+                  .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                  .call(force1.drag);
+            }
+
+            function tick1() {
+              link.attr("x1", function(d) { return d.source.x; })
+                  .attr("y1", function(d) { return d.source.y; })
+                  .attr("x2", function(d) { return d.target.x; })
+                  .attr("y2", function(d) { return d.target.y; });
+
+              node.attr("cx", function(d) { return d.x; })
+                  .attr("cy", function(d) { return d.y; });
+            }
+
+            // Color leaf nodes orange, and packages white or blue.
+            function color(d) {
+              return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+            }
+
+            // Toggle children on click.
+            function click1(d) {
+              if (!d3.event.defaultPrevented) {
+                if (d.children) {
+                  d._children = d.children;
+                  d.children = null;
+                } else {
+                  d.children = d._children;
+                  d._children = null;
+                }
+                update1();
+              }
+            }
+
+            // Returns a list of all nodes under the root.
+            function flatten(root) {
+              var nodes = [], i = 0;
+
+              function recurse(node) {
+                if (node.children) node.children.forEach(recurse);
+                if (!node.id) node.id = ++i;
+                nodes.push(node);
+              }
+
+              recurse(root);
+              return nodes;
+            }
+}
+
+
+var layout2 = function() {
+
+  var force2 = d3.layout.force()
+          .size([width/2+2*width/2, height/2+height/2])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(3.562)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick2);
+
+  var link = svg.selectAll(".link"),
+              node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("acura_final.json", function(json2) {
+                  root2 = json2;
+                  update2();
+                });
+
+                function update2() {
+                  var nodes = flatten(root2),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force2
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click2)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force2.drag);
+                }
+
+                function tick2() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click2(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update2();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+var layout3 = function() {
+
+  var force3 = d3.layout.force()
+          .size([width, height])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(21.907)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick3);
+
+  var link = svg.selectAll(".link"),
+              node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("BMW_final.json", function(json3) {
+                  root3 = json3;
+                  update3();
+                });
+
+                function update3() {
+                  var nodes = flatten(root3),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force3
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click3)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force3.drag);
+                }
+
+                function tick3() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click3(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update3();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+var layout4 = function() {
+
+  var force4 = d3.layout.force()
+          .size([width, height])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(7.716)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick4);
+
+  var link = svg.selectAll(".link"),
+             node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("cadillac_final.json", function(json4) {
+                  root4 = json4;
+                  update4();
+                });
+
+                function update4() {
+                  var nodes = flatten(root4),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force4
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click4)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force4.drag);
+                }
+
+                function tick4() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click4(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update4();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+var layout5 = function() {
+
+  var force5 = d3.layout.force()
+          .size([width, height])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(5.428)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick5);
+
+  var link = svg.selectAll(".link"),
+              node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("lexus_final.json", function(json5) {
+                  root5 = json5;
+                  update5();
+                });
+
+                function update5() {
+                  var nodes = flatten(root5),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force5
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click5)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force5.drag);
+                }
+
+                function tick5() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click5(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update5();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+var layout6 = function() {
+
+  var force6 = d3.layout.force()
+          .size([width, height])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(19.783)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick6);
+
+  var link = svg.selectAll(".link"),
+              node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("mercedes_final.json", function(json6) {
+                  root6 = json6;
+                  update6();
+                });
+
+                function update6() {
+                  var nodes = flatten(root6),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force6
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click6)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force6.drag);
+                }
+
+                function tick6() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click6(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update6();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+var layout7 = function() {
+
+  var force7 = d3.layout.force()
+          .size([width, height])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(0.986)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick7);
+
+  var link = svg.selectAll(".link"),
+              node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("saab_final.json", function(json7) {
+                  root7 = json7;
+                  update7();
+                });
+
+                function update7() {
+                  var nodes = flatten(root7),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force7
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click7)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force7.drag);
+                }
+
+                function tick7() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click7(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update7();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+var layout8 = function() {
+
+  var force8 = d3.layout.force()
+          .size([width, height])
+          // .linkDistance(function(d) {
+          //     return d.size/100;
+          //  })
+          // .linkDistance(Math.random() * 300 +200)
+          .linkDistance(5.905)
+        //  .friction(0.5)
+          .charge(-100)
+          .gravity(0)
+          .on("tick", tick8);
+
+  var link = svg.selectAll(".link"),
+              node = svg.selectAll(".node");
+
+  var div = d3.select("body").append("div")
+                .attr("class", "mapTooltip")
+                .style("opacity", 0);
+
+  d3.json("tesla_final.json", function(json8) {
+                  root8 = json8;
+                  update8();
+                });
+
+                function update8() {
+                  var nodes = flatten(root8),
+                      links = d3.layout.tree().links(nodes);
+
+
+                  // Restart the force layout.
+                  force8
+                      .nodes(nodes)
+                      .links(links)
+                      .start();
+
+                  // Update the links…
+                  link = link.data(links, function(d) { return d.target.id; });
+
+                  // Exit any old links.
+                  link.exit().remove();
+
+                  // Enter any new links.
+                  link.enter().insert("line", ".node")
+                      .attr("class", "link")
+                      .attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  // Update the nodes…
+                  node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+
+                  // Exit any old nodes.
+                  node.exit().remove();
+
+                  // Enter any new nodes.
+                  node.enter().append("circle")
+                      .attr("class", "node")
+                      .attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; })
+                      .attr("r", function(d) { return d._children ? 20 : d.children ? 20 : Math.sqrt(d.n/Math.PI);})
+                      .style("fill", color)
+                      .on("click", click8)
+                      .on("mouseover", function(d) {
+                            div.transition().duration(300).style("opacity", 1);
+                            div.text( d._children ? d.prev_title + ": " + d.n + " connections" : d.children ? d.prev_title + ": " + d.n + " connections" : d.prev_title + ": " + d.n + " connections (" + d.conec_perc + "%)")
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY -30) + "px");})
+                      .on("mouseout", function (d) { div.transition().duration(300).style("opacity", 0);})
+                      .call(force8.drag);
+                }
+
+                function tick8() {
+                  link.attr("x1", function(d) { return d.source.x; })
+                      .attr("y1", function(d) { return d.source.y; })
+                      .attr("x2", function(d) { return d.target.x; })
+                      .attr("y2", function(d) { return d.target.y; });
+
+                  node.attr("cx", function(d) { return d.x; })
+                      .attr("cy", function(d) { return d.y; });
+                }
+
+                // Color leaf nodes orange, and packages white or blue.
+                function color(d) {
+                  return d._children ? "#50e6c6" : d.children ? "#59ffdc" : "#fd8d3c";
+                }
+
+                function click8(d) {
+                  if (!d3.event.defaultPrevented) {
+                    if (d.children) {
+                      d._children = d.children;
+                      d.children = null;
+                    } else {
+                      d.children = d._children;
+                      d._children = null;
+                    }
+                    update8();
+                  }
+                }
+
+                // Returns a list of all nodes under the root.
+                function flatten(root) {
+                  var nodes = [], i = 0;
+
+                  function recurse(node) {
+                    if (node.children) node.children.forEach(recurse);
+                    if (!node.id) node.id = ++i;
+                    nodes.push(node);
+                  }
+
+                  recurse(root);
+                  return nodes;
+                }
+}
+
+layout1();
+layout2();
+layout3();
+layout4();
+layout5();
+layout6();
+layout7();
+layout8();
+
+</script>
+</body>

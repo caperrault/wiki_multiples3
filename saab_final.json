@@ -1,0 +1,30 @@
+{
+"prev_title": "Saab", "n":986,"connec_tot":986, "conec_perc":100,
+"children": [
+{ "prev_id":44730860, "curr_id":736913, "n":18, "prev_title":"Companies_by_arms_sales", "type":"link", "connec_tot":986, "conec_perc":1.83},
+{ "prev_id":14395, "curr_id":736913, "n":12, "prev_title":"Hummer", "type":"other", "connec_tot":986, "conec_perc":1.22},
+{ "prev_id":147676, "curr_id":736913, "n":13, "prev_title":"Jaguar_Cars", "type":"other", "connec_tot":986, "conec_perc":1.32},
+{ "prev_id":880702, "curr_id":736913, "n":10, "prev_title":"Geely", "type":"other", "connec_tot":986, "conec_perc":1.01},
+{ "prev_id":3772, "curr_id":736913, "n":13, "prev_title":"BMW", "type":"other", "connec_tot":986, "conec_perc":1.32},
+{ "prev_id":33731380, "curr_id":736913, "n":13, "prev_title":"Dassault_Rafale", "type":"other", "connec_tot":986, "conec_perc":1.32},
+{ "prev_id":848, "curr_id":736913, "n":14, "prev_title":"Audi", "type":"other", "connec_tot":986, "conec_perc":1.42},
+{ "prev_id":12102, "curr_id":736913, "n":11, "prev_title":"General_Motors", "type":"other", "connec_tot":986, "conec_perc":1.12},
+{ "prev_id":17310, "curr_id":736913, "n":16, "prev_title":"Koenigsegg", "type":"other", "connec_tot":986, "conec_perc":1.62},
+{ "prev_id":389605, "curr_id":736913, "n":59, "prev_title":"Volvo_Cars", "type":"other", "connec_tot":986, "conec_perc":5.98},
+{ "prev_id":35953235, "curr_id":736913, "n":10, "prev_title":"Subaru_Impreza_(second_generation)", "type":"other", "connec_tot":986, "conec_perc":1.01},
+{ "prev_id":23901899, "curr_id":736913, "n":12, "prev_title":"Subaru", "type":"other", "connec_tot":986, "conec_perc":1.22},
+{ "prev_id":32412, "curr_id":736913, "n":116, "prev_title":"Volvo", "type":"other", "connec_tot":986, "conec_perc":11.76},
+{ "prev_id":32851, "curr_id":736913, "n":10, "prev_title":"Wiki", "type":"other", "connec_tot":986, "conec_perc":1.01},
+{ "prev_id":76165, "curr_id":736913, "n":10, "prev_title":"Pontiac", "type":"other", "connec_tot":986, "conec_perc":1.01},
+{ "prev_id":321949, "curr_id":736913, "n":15, "prev_title":"Saab_99", "type":"other", "connec_tot":986, "conec_perc":1.52},
+{ "prev_id":3946960, "curr_id":736913, "n":12, "prev_title":"SABB", "type":"other", "connec_tot":986, "conec_perc":1.22},
+{ "prev_id":161812, "curr_id":736913, "n":10, "prev_title":"Saturn_Corporation", "type":"other", "connec_tot":986, "conec_perc":1.01},
+{ "prev_id":15580374, "curr_id":736913, "n":482, "prev_title":"Main_Page", "type":"other", "connec_tot":986, "conec_perc":48.88},
+{ "prev_id":1386403, "curr_id":736913, "n":11, "prev_title":"Saab_9-7X", "type":"other", "connec_tot":986, "conec_perc":1.12},
+{ "prev_id":206359, "curr_id":736913, "n":40, "prev_title":"Scania_AB", "type":"other", "connec_tot":986, "conec_perc":4.06},
+{ "prev_id":291368, "curr_id":736913, "n":12, "prev_title":"Saab_9-3", "type":"other", "connec_tot":986, "conec_perc":1.22},
+{ "prev_id":682376, "curr_id":736913, "n":41, "prev_title":"Saab_Automobile", "type":"other", "connec_tot":986, "conec_perc":4.16},
+{ "prev_id":162292, "curr_id":736913, "n":16, "prev_title":"Renault", "type":"other", "connec_tot":986, "conec_perc":1.62},
+{ "prev_id":32652, "curr_id":736913, "n":10, "prev_title":"Volkswagen_Group", "type":"other", "connec_tot":986, "conec_perc":1.01}
+  ]
+}
